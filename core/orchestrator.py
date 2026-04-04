@@ -91,6 +91,26 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"Ошибка в цикле CLI: {e}")
 
+
+    async def safe_generate(self, prompt: str):
+        # 1. Генерация первичного кода через LLM (например, DeepSeek/Gemini)
+        raw_code = await self.llm_service.generate(prompt)
+        
+        # 2. Валидация
+        if not self.api_helper.validate_syntax(raw_code):
+            # Повторный запрос с указанием ошибки синтаксиса
+            return "Fixing syntax..."
+
+        # 3. Выполнение в Blender
+        result = await self.blender_service.run_python(raw_code)
+        
+        if result.get("status") == "error":
+            # КРИТИЧЕСКИЙ ШАГ: Самоисправление
+            error_msg = result.get("message")
+            fix_prompt = f"Код вызвал ошибку: {error_msg}. Исправь его, используя BMesh API 5.1."
+            fixed_code = await self.llm_service.generate(fix_prompt)
+            await self.blender_service.run_python(fixed_code)
+
 async def main():
     orchestrator = Orchestrator()
     await orchestrator.run_cli()

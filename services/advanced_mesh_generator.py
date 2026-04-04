@@ -1,61 +1,36 @@
-# services/advanced_mesh_generator.py
+from typing import List, Dict
+from .blender_api_helper import BlenderAPIHelper
+
 class AdvancedMeshGenerator:
-    def generate_realistic_sword(self, components: List[Dict]) -> str:
-        """Генерирует реалистичный меч с продвинутыми техниками"""
-        code = [
-            "import bpy",
-            "import bmesh",
-            "from mathutils import Vector, Matrix",
-            "",
-            "# ============================================================",
-            "# РЕАЛИСТИЧНЫЙ МЕЧ - ПРОДВИНУТЫЕ ТЕХНИКИ",
-            "# ============================================================",
-            "",
-            "# Очистка сцены",
-            "bpy.ops.object.select_all(action='SELECT')",
-            "bpy.ops.object.delete(use_global=False, confirm=False)",
-            "",
-            "# Создание меша через bmesh для большего контроля",
-            "bm = bmesh.new()",
-            "",
-            "# Лезвие с плавными изгибами",
-            "blade_verts = [",
-            "    Vector((-0.05, 0, 0)), Vector((0.05, 0, 0)),",
-            "    Vector((-0.08, 0, 0.5)), Vector((0.08, 0, 0.5)),", 
-            "    Vector((-0.05, 0, 1.0)), Vector((0.05, 0, 1.0)),",
-            "    Vector((-0.02, 0, 1.2)), Vector((0.02, 0, 1.2))",
-            "]",
-            "",
-            "# Добавление вершин и создание faces",
-            "for v in blade_verts:",
-            "    bm.verts.new(v)",
-            "bm.verts.ensure_lookup_table()",
-            "",
-            "# Создание плавного лезвия",
-            "bm.faces.new([bm.verts[0], bm.verts[2], bm.verts[3], bm.verts[1]])",
-            "bm.faces.new([bm.verts[2], bm.verts[4], bm.verts[5], bm.verts[3]])",
-            "bm.faces.new([bm.verts[4], bm.verts[6], bm.verts[7], bm.verts[5]])",
-            "",
-            "# Создание меша и объекта",
-            "blade_mesh = bpy.data.meshes.new('SharpBlade')",
-            "bm.to_mesh(blade_mesh)",
-            "bm.free()",
-            "blade_obj = bpy.data.objects.new('SharpBlade', blade_mesh)",
-            "bpy.context.collection.objects.link(blade_obj)",
-            "",
-            "# Модификаторы для реалистичности",
-            "bevel = blade_obj.modifiers.new('Bevel', 'BEVEL')",
-            "bevel.width = 0.002",
-            "bevel.segments = 3",
-            "",
-            "subdiv = blade_obj.modifiers.new('Subdivision', 'SUBSURF')",
-            "subdiv.levels = 2",
-            "",
-            "# Сглаживание",
-            "bpy.ops.object.select_all(action='SELECT')",
-            "bpy.ops.object.shade_smooth()",
-            "",
-            "print('✅ Реалистичный меч создан!')"
-        ]
+    def __init__(self):
+        self.api_helper = BlenderAPIHelper()
+
+    def generate_component_code(self, component_type: str, params: Dict) -> str:
+        """
+        Генерирует чистый BMesh код.
+        Никаких bpy.ops. Все операции через индексы и вершины.
+        """
+        # Базовая логика для меча (лезвие)
+        if component_type == "blade":
+            length = params.get("length", 1.0)
+            width = params.get("width", 0.1)
+            
+            # Мы даем модели этот шаблон как "золотой стандарт"
+            logic = f"""
+# Параметры: длина={length}, ширина={width}
+verts = [
+    bm.verts.new((- {width}/2, 0, 0)),
+    bm.verts.new(({width}/2, 0, 0)),
+    bm.verts.new(({width}/2, 0.01, {length})),
+    bm.verts.new((- {width}/2, 0.01, {length})),
+    bm.verts.new((0, 0, {length} * 1.1)) # Острие
+]
+
+# Создание граней
+bm.faces.new(verts[0:4]) # Основное тело
+bm.faces.new([verts[2], verts[3], verts[4]]) # Кончик
+bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+"""
+            return self.api_helper.wrap_in_boilerplate(logic)
         
-        return '\n'.join(code)
+        return ""
