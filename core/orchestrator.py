@@ -1,122 +1,76 @@
+import logging
 import asyncio
-from loguru import logger
-from rich.console import Console
-from rich.panel import Panel
-import yaml
+from pathlib import Path
+from typing import Dict, Any, Optional
 
-# Импорты твоих сервисов
+# Импорт наших очищенных сервисов
 from services.llm_service import LLMService
 from services.blender_service import BlenderService
-from services.blender_knowledge_base import BlenderKnowledgeBase
-from agents.geometry_agent import GeometryAgent
+from services.blender_api_helper import BlenderAPIHelper
+from services.asset_factory import AssetFactory
 
 class Orchestrator:
-    def __init__(self, config_path: str = "config/settings.yaml"):
-        self.console = Console()
-        self.config = self._load_config(config_path)
-
+    def __init__(self, config: Dict[str, Any]):
+        self.root = Path(__file__).resolve().parent.parent
+        self.config = config
+        
         # Инициализация сервисов
-        self.llm = LLMService(self.config.get('llm', {}))
-        self.blender = BlenderService(self.config.get('blender', {}))
-        self.kb = BlenderKnowledgeBase()
-
-        # Инициализация агентов
-        self.geometry_agent = GeometryAgent(self.llm, self.blender, self.kb)
-
-        logger.info("🎯 Orchestrator v1.0 запущен и готов к работе")
-
-    def _load_config(self, path: str) -> dict:
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
-        except Exception:
-            # Дефолтный конфиг, если файла нет
-            return {
-                'llm': {'model_coordinator': 'deepseek-coder:6.7b'},
-                'blender': {'host': '127.0.0.1', 'port': 9876}
-            }
-
-    async def generate_from_reference(self, prompt: str, material: str):
-        # 1. Запуск Hunyuan3D (Вариант 2)
-        print(f"🎨 Генерирую форму через Hunyuan3D для: {prompt}")
-        # Тут будет вызов ComfyUI API с твоим .json воркфлоу
+        self.llm = LLMService(config.get('llm', {}))
+        self.blender = BlenderService(config.get('blender', {}))
+        self.api_helper = BlenderAPIHelper()
+        self.asset_factory = AssetFactory(self.root)
         
-        # 2. Получение настроек материала (Вариант 3)
-        mat_props = self.reference_service.get_material_blueprint(material)
-        
-        # 3. Формирование задания для GeometryAgent
-        refinement_task = f"""
-        Импортируй сгенерированный меш. 
-        Примени материал с параметрами: {mat_props}.
-        Исправь масштаб согласно историческим данным 9 века.
+        logging.info("🚀 Chronos Orchestrator v2.0 initialized")
+
+    async def generate_asset_workflow(self, prompt: str, category: str = "weapon"):
         """
-        return await self.agents['geometry'].execute(refinement_task)
+        Главный рабочий процесс генерации ассета.
+        """
+        logging.info(f"📝 Processing prompt: {prompt}")
 
+        # 1. Анализ промпта и получение 'сырого' кода от LLM
+        # Мы добавляем системную подсказку из API Helper, чтобы LLM сразу знала правила
+        system_hint = self.api_helper.get_api_hint(category)
+        full_prompt = f"{system_hint}\n\nTask: {prompt}"
+        
+        raw_code = await self.llm.generate(full_prompt)
+        
+        # 2. Валидация и трансформация кода
+        # Проверяем синтаксис и ищем запрещенные паттерны
+        validation = self.api_helper.validate_and_fix_syntax(raw_code)
+        
+        if not validation["is_valid"]:
+            logging.error(f"❌ LLM generated invalid code: {validation['errors']}")
+            # Здесь можно запустить цикл самоисправления, отправив ошибки обратно в LLM
+            return {"status": "error", "message": "Syntax validation failed", "details": validation["errors"]}
 
-    async def handle_user_request(self, prompt: str):
-        if not await self.blender.connect():
-            self.console.print("[red]❌ Ошибка связи с Blender[/]")
-            return
+        if validation["suggestions"]:
+            logging.warning(f"⚠️ API Suggestions: {validation['suggestions']}")
 
-        result = await self.geometry_agent.execute({"prompt": prompt}, "session_1")
+        # 3. Регистрация будущего ассета и подготовка UID
+        asset_id = self.asset_factory.generate_uid("MSH")
+        
+        # 4. Обертка в безопасный Chronos-контекст (BMesh, Error Handling)
+        final_code = self.api_helper.wrap_in_chronos_context(raw_code, asset_id=asset_id)
 
-        if result.get('success'):
-            self.console.print(f"\n[green]✅ Готово![/] {result['message']}")
+        # 5. Исполнение в Blender
+        logging.info(f"🛠 Sending validated code to Blender for Asset: {asset_id}")
+        result = await self.blender.run_python(final_code)
+
+        if result.get("status") == "success":
+            # 6. Если всё ок, фиксируем ассет в реестре
+            self.asset_factory.register_new_mesh(
+                category="generated", 
+                sub_type=category, 
+                metadata={"prompt": prompt, "engine": "Chronos_v2"}
+            )
+            logging.info(f"✅ Asset {asset_id} created and registered.")
         else:
-            self.console.print(f"\n[red]❌ Сбой:[/ ] {result['message']}")
+            logging.error(f"❌ Blender execution failed: {result.get('message')}")
 
-    async def run_cli(self):
-        self.console.print(Panel.fit(
-            "🎮 [bold cyan]Chronos Engine 2.0[/]\n"
-            "Интерфейс управления ИИ-генерацией ассетов\n"
-            "Порт Blender: 9876 | Модель: DeepSeek",
-            border_style="magenta"
-        ))
+        return result
 
-        while True:
-            try:
-                user_input = self.console.input("\n[bold blue]🎨 Запрос (или 'exit'):[/] ").strip()
-
-                if user_input.lower() in ['exit', 'quit']:
-                    break
-                
-                if not user_input:
-                    continue
-
-                self.console.print("[yellow]⏳ Работаю над ассетом...[/]")
-                await self.handle_user_request(user_input)
-
-            except KeyboardInterrupt:
-                break
-            except Exception as e:
-                logger.error(f"Ошибка в цикле CLI: {e}")
-
-
-    async def safe_generate(self, prompt: str):
-        # 1. Генерация первичного кода через LLM (например, DeepSeek/Gemini)
-        raw_code = await self.llm_service.generate(prompt)
-        
-        # 2. Валидация
-        if not self.api_helper.validate_syntax(raw_code):
-            # Повторный запрос с указанием ошибки синтаксиса
-            return "Fixing syntax..."
-
-        # 3. Выполнение в Blender
-        result = await self.blender_service.run_python(raw_code)
-        
-        if result.get("status") == "error":
-            # КРИТИЧЕСКИЙ ШАГ: Самоисправление
-            error_msg = result.get("message")
-            fix_prompt = f"Код вызвал ошибку: {error_msg}. Исправь его, используя BMesh API 5.1."
-            fixed_code = await self.llm_service.generate(fix_prompt)
-            await self.blender_service.run_python(fixed_code)
-
-async def main():
-    orchestrator = Orchestrator()
-    await orchestrator.run_cli()
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    async def shutdown(self):
+        """Корректное завершение работы"""
+        await self.blender.close()
+        logging.info("📴 Orchestrator shutdown.")
