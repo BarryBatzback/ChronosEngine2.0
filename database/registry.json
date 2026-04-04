@@ -1,0 +1,22 @@
+{
+    "materials": {
+        "MAT_FE_001": {
+            "name": "Refined Iron",
+            "density": 7870,
+            "roughness": 0.45,
+            "metalness": 1.0,
+            "color_hex": "#5A5A5A"
+        }
+    },
+    "meshes": {
+        "MSH_BLD_001": {
+            "category": "blades",
+            "rel_path": "assets/blades/MSH_BLD_001.blend",
+            "tags": [
+                "9th_century",
+                "carolingian"
+            ],
+            "default_mat": "MAT_FE_001"
+        }
+    }
+}

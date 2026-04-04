@@ -1,0 +1,97 @@
+{
+    "3": {
+        "class_type": "KSampler",
+        "inputs": {
+            "seed": 42,
+            "steps": 20,
+            "cfg": 7.5,
+            "sampler_name": "euler",
+            "scheduler": "normal",
+            "denoise": 1,
+            "model": [
+                "4",
+                0
+            ],
+            "positive": [
+                "5",
+                0
+            ],
+            "negative": [
+                "6",
+                0
+            ],
+            "latent_image": [
+                "7",
+                0
+            ]
+        }
+    },
+    "4": {
+        "class_type": "Hunyuan3DModelLoader",
+        "inputs": {
+            "model_name": "tencent/Hunyuan3D-2mini",
+            "precision": "fp16"
+        }
+    },
+    "5": {
+        "class_type": "CLIPTextEncode",
+        "inputs": {
+            "text": "a wooden table with realistic texture",
+            "clip": [
+                "4",
+                1
+            ]
+        }
+    },
+    "6": {
+        "class_type": "CLIPTextEncode",
+        "inputs": {
+            "text": "low quality, blurry, distorted",
+            "clip": [
+                "4",
+                1
+            ]
+        }
+    },
+    "7": {
+        "class_type": "EmptyLatentHunyuan3Dv2",
+        "inputs": {
+            "resolution": 1536,
+            "batch_size": 1
+        }
+    },
+    "8": {
+        "class_type": "VAEDecodeHunyuan3D",
+        "inputs": {
+            "samples": [
+                "3",
+                0
+            ],
+            "vae": [
+                "4",
+                2
+            ]
+        }
+    },
+    "9": {
+        "class_type": "VoxelToMesh",
+        "inputs": {
+            "voxels": [
+                "8",
+                0
+            ],
+            "threshold": 0.5,
+            "smooth": true
+        }
+    },
+    "10": {
+        "class_type": "SaveGLB",
+        "inputs": {
+            "mesh": [
+                "9",
+                0
+            ],
+            "filename_prefix": "generated_model"
+        }
+    }
+}

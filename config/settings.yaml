@@ -1,0 +1,45 @@
+﻿system:
+  name: "GameAssetOrchestrator"
+  version: "1.0.0"
+  debug: false
+
+gpu:
+  vram_limit_gb: 14
+  cuda_version: "12.4"
+
+blender:
+  host: "localhost"
+  port: 9876
+
+comfyui:
+  base_url: http://127.0.0.1:8188
+  workflow_path: workflows/hunyuan3d_text2mesh.json
+  output_dir: ./output/3d_models
+  timeout: 120
+
+llm:
+  provider: ollama
+  host: http://localhost
+  port: 11434
+  
+  # DeepSeek модели (быстрее Qwen)
+  model_coordinator: deepseek-coder:6.7b
+  model_specialist: deepseek-coder:6.7b
+  model_vision: deepseek-coder:6.7b
+  
+  # Параметры генерации
+  temperature: 0.3
+  max_tokens: 4096
+  num_ctx: 8192
+  keep_alive: 5m
+  num_gpu: 1
+
+database:
+  type: "sqlite"
+  path: "./database/orchestrator.db"
+
+logging:
+  level: "INFO"
+  file: "./logs/orchestrator.log"
+  max_size_mb: 100
+  backup_count: 5
