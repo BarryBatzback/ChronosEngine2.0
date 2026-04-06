@@ -15,7 +15,7 @@ try:
 except ImportError:
     logger = logging.getLogger(__name__)
 
-print("⚙️ BlenderAPIHelper: Loading Production Version 2.4 (Suggestions & Bugfixes)...")
+print("⚙️ BlenderAPIHelper: Loading Production Version 2.3 (API Hints & Validation)...")
 
 class BlenderAPIHelper:
     """
@@ -25,10 +25,10 @@ class BlenderAPIHelper:
     def __init__(self):
         # Запрещенные паттерны (типичные ошибки LLM)
         self.BANNED_PATTERNS = {
-            "bpy.ops.mesh.primitive_": "Используйте bmesh.ops для процедурной генерации.",
-            "bpy.data.textures": "Используйте Shader Nodes.",
-            "mesh.tessface": "Устарело. Используйте mesh.polygons.",
-            "bpy.ops.object.mode_set": "Избегайте переключения режимов."
+            "bpy.ops.mesh.primitive_": "Используйте bmesh.ops для генерации геометрии.",
+            "bpy.ops.object.mode_set": "Избегайте смены режимов внутри процедурного скрипта.",
+            "bpy.data.textures": "Используйте Shader Nodes через скрипт.",
+            "mesh.tessface": "Этот атрибут устарел. Используйте bmesh или mesh.polygons."
         }
         
         self.ALLOWED_IMPORTS = {
@@ -39,6 +39,7 @@ class BlenderAPIHelper:
     def get_api_hint(self, context: str) -> str:
         """
         Возвращает контекстную подсказку для LLM.
+        Это исправляет ошибку 'object has no attribute get_api_hint'.
         """
         hints = {
             "palisade": (
@@ -102,41 +103,57 @@ class BlenderAPIHelper:
                             lines[idx] = line + closing
         return '\n'.join(lines)
 
-    def validate_and_fix_syntax(self, raw_code: str) -> Dict[str, Any]:
+    def validate_and_fix_syntax(self, code: str) -> Dict[str, Any]:
         """
-        Основной метод валидации кода. 
-        Теперь включает ключ 'suggestions' для предотвращения KeyError в Orchestrator.
-        """
-        report = {
-            "is_valid": True, 
-            "errors": [], 
-            "suggestions": [], 
-            "cleaned_code": ""
+        Валидация и исправление синтаксиса кода.
+        
+        Returns:
+            Dict с ключами:
+            - is_valid: bool
+            - cleaned_code: str
+            - errors: List[str]
+            - suggestions: List[str]
+        """ 
+        errors = []
+        suggestions = []
+        fixed_code = code
+        
+        # 1. Извлекаем чистый код из markdown
+        fixed_code = self._extract_pure_code(fixed_code)
+        
+        # 2. Проверка синтаксиса Python
+        try:
+            ast.parse(fixed_code)
+        except SyntaxError as e:
+            errors.append(f"SYNTAX ERROR at line {e.lineno}: {e.msg}")
+            suggestions.append(f"Check line {e.lineno} for syntax issues")
+        
+        # 3. Проверка на запрещённые паттерны
+        for pattern, message in self.BANNED_PATTERNS.items():
+            if re.search(re.escape(pattern), fixed_code, re.IGNORECASE):
+                errors.append(f"BANNED: '{pattern}' - {message}")
+                suggestions.append(f"Replace '{pattern}' with: {message}")
+        
+        # 4. Проверка bmesh
+        if 'bmesh.' in fixed_code:
+            if 'bmesh.new()' in fixed_code and 'bm.free()' not in fixed_code:
+                suggestions.append("Add 'bm.free()' after bmesh.to_mesh() to prevent memory leaks")
+            if 'bm.verts.new' in fixed_code and 'bm.verts.ensure_lookup_table()' not in fixed_code:
+                suggestions.append("Call 'bm.verts.ensure_lookup_table()' after adding vertices")
+        
+        # 5. Добавляем недостающие элементы
+        fixed_code = self._add_missing_elements(fixed_code)
+        
+        # 6. Исправляем отступы
+        fixed_code = self._fix_indentation(fixed_code)
+        
+        return {
+            "is_valid": len([e for e in errors if "ERROR" in e]) == 0,
+            "cleaned_code": fixed_code,
+            "errors": errors,
+            "suggestions": suggestions
         }
-        
-        # 1. Извлечение
-        code = self._extract_pure_code(raw_code)
-        
-        # 2. Проверка синтаксиса
-        is_valid, syntax_errors = self._validate_python_syntax(code)
-        if not is_valid:
-            code = self._fix_syntax_errors(code, syntax_errors)
-            # Повторная попытка после исправления
-            is_valid, syntax_errors = self._validate_python_syntax(code)
-            if not is_valid:
-                report["is_valid"] = False
-                report["errors"].extend(syntax_errors)
-                report["suggestions"].append("Проверьте закрывающие скобки и кавычки в указанных строках.")
 
-        # 3. Поиск запрещенных паттернов
-        for pattern, msg in self.BANNED_PATTERNS.items():
-            if pattern in code:
-                warn_msg = f"Найден запрещенный паттерн: {pattern}"
-                report["errors"].append(warn_msg)
-                report["suggestions"].append(msg)
-
-        report["cleaned_code"] = code
-        return report
 
     def wrap_in_chronos_context(self, logic_code: str, asset_id: str = "GEN_ASSET") -> str:
         """Оборачивает логику в изолированную функцию."""

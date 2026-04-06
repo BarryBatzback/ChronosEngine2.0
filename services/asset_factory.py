@@ -1,88 +1,72 @@
-import json
 import uuid
+import time
+import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict, Any, Optional
 
 class AssetFactory:
-    def __init__(self, root_dir: Path):
-        self.root = root_dir
-        self.registry_path = self.root / "database" / "registry.json"
-        self.assets_dir = self.root / "assets"
-        
-        # Гарантируем наличие базы
+    """
+    Сервис управления реестром ассетов и генерации уникальных метаданных.
+    Отвечает за целостность базы данных registry.json и именование.
+    """
+    
+    def __init__(self, root_path: Path):
+        self.root = Path(root_path)
+        self.registry_path = self.root / "data" / "registry.json"
+        self._ensure_registry_exists()
+
+    def generate_uid(self, prefix: str = "MSH") -> str:
+        """
+        Генерирует стандартизированный UID для Chronos Engine.
+        Формат: [PREFIX]_[HASH]_[TIMESTAMP]
+        """
+        short_hash = str(uuid.uuid4()).split('-')[0].upper()
+        timestamp = int(time.time())
+        return f"{prefix}_{short_hash}_{timestamp}"
+
+    def get_asset_data(self, asset_id: str) -> Dict[str, Any]:
+        """Безопасное получение данных ассета из реестра."""
+        registry = self._load_registry()
+        return registry.get(asset_id, {})
+
+    def register_asset(self, asset_id: str, metadata: Dict[str, Any]) -> bool:
+        """
+        Регистрирует новый ассет в системе. 
+        Централизованный метод записи, исключающий дублирование в Orchestrator.
+        """
+        try:
+            registry = self._load_registry()
+            
+            registry[asset_id] = {
+                "timestamp": time.ctime(),
+                "unix_time": int(time.time()),
+                **metadata
+            }
+            
+            with open(self.registry_path, 'w', encoding='utf-8') as f:
+                json.dump(registry, f, indent=4, ensure_ascii=False)
+            
+            logging.info(f"💾 Asset {asset_id} registered in database.")
+            return True
+        except Exception as e:
+            logging.error(f"❌ Failed to register asset: {e}")
+            return False
+
+    def _load_registry(self) -> Dict[str, Any]:
+        """Внутренний метод загрузки данных."""
+        if not self.registry_path.exists():
+            return {}
+        try:
+            with open(self.registry_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logging.warning("⚠️ Registry file corrupted, starting fresh.")
+            return {}
+
+    def _ensure_registry_exists(self):
+        """Гарантирует наличие структуры папок для БД."""
         self.registry_path.parent.mkdir(parents=True, exist_ok=True)
-        self.load_registry()
-
-    def load_registry(self):
-        if self.registry_path.exists():
-            try:
-                with open(self.registry_path, 'r', encoding='utf-8') as f:
-                    self.registry = json.load(f)
-            except json.JSONDecodeError:
-                logging.error("Registry file is corrupted. Resetting.")
-                self.registry = {"materials": {}, "meshes": {}, "metadata": {"version": "2.0"}}
-        else:
-            self.registry = {"materials": {}, "meshes": {}, "metadata": {"version": "2.0"}}
-            self.save_registry()
-
-    def save_registry(self):
-        with open(self.registry_path, 'w', encoding='utf-8') as f:
-            json.dump(self.registry, f, indent=4, ensure_ascii=False)
-
-    def get_asset_info(self, uid: str) -> Optional[Dict]:
-        """Получить полные данные об ассете по его ID"""
-        return self.registry["meshes"].get(uid) or self.registry["materials"].get(uid)
-
-    def register_new_mesh(self, category: str, sub_type: str, metadata: Dict[str, Any]) -> str:
-        """
-        Регистрация нового меша в системе.
-        Пример: category='weapons', sub_type='blades'
-        """
-        uid = f"MSH_{category.upper()[:3]}_{uuid.uuid4().hex[:6].upper()}"
-        rel_path = f"assets/{category}/{sub_type}/{uid}.blend"
-        
-        # Создаем физическую папку
-        (self.root / rel_path).parent.mkdir(parents=True, exist_ok=True)
-
-        self.registry["meshes"][uid] = {
-            "uid": uid,
-            "path": rel_path,
-            "category": category,
-            "sub_type": sub_type,
-            "metadata": metadata,
-            "status": "raw"
-        }
-        self.save_registry()
-        return uid
-
-    def create_blender_import_script(self, uid: str) -> str:
-        """Генерирует идеальный код импорта для Blender на основе UID"""
-        asset = self.get_asset_info(uid)
-        if not asset:
-            return "# Error: Asset UID not found"
-
-        abs_path = (self.root / asset['path']).as_posix()
-        
-        return f"""
-import bpy
-import os
-
-def import_chronos_asset():
-    path = "{abs_path}"
-    if not os.path.exists(path):
-        print(f"Error: File not found {{path}}")
-        return
-
-    # Импорт объекта по UID через библиотеку
-    with bpy.data.libraries.load(path, link=False) as (data_from, data_to):
-        data_to.objects = data_from.objects
-
-    for obj in data_to.objects:
-        if obj is not None:
-            bpy.context.collection.objects.link(obj)
-            obj["chronos_uid"] = "{uid}" # Метка для синхронизации
-            print(f"Successfully imported: {{obj.name}} with UID {uid}")
-
-import_chronos_asset()
-"""
+        if not self.registry_path.exists():
+            with open(self.registry_path, 'w', encoding='utf-8') as f:
+                json.dump({}, f)

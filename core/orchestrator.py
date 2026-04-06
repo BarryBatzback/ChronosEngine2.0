@@ -29,20 +29,21 @@ class Orchestrator:
         logging.info(f"📝 Processing prompt: {prompt}")
 
         # 1. Анализ промпта и получение 'сырого' кода от LLM
-        # Мы добавляем системную подсказку из API Helper, чтобы LLM сразу знала правила
         system_hint = self.api_helper.get_api_hint(category)
         full_prompt = f"{system_hint}\n\nTask: {prompt}"
         
         raw_code = await self.llm.generate(full_prompt)
         
         # 2. Валидация и трансформация кода
-        # Проверяем синтаксис и ищем запрещенные паттерны
         validation = self.api_helper.validate_and_fix_syntax(raw_code)
         
         if not validation["is_valid"]:
             logging.error(f"❌ LLM generated invalid code: {validation['errors']}")
-            # Здесь можно запустить цикл самоисправления, отправив ошибки обратно в LLM
-            return {"status": "error", "message": "Syntax validation failed", "details": validation["errors"]}
+            return {
+                "status": "error", 
+                "message": "Syntax validation failed", 
+                "details": validation["errors"]
+            }
 
         if validation["suggestions"]:
             logging.warning(f"⚠️ API Suggestions: {validation['suggestions']}")
@@ -50,25 +51,31 @@ class Orchestrator:
         # 3. Регистрация будущего ассета и подготовка UID
         asset_id = self.asset_factory.generate_uid("MSH")
         
-        # 4. Обертка в безопасный Chronos-контекст (BMesh, Error Handling)
-        final_code = self.api_helper.wrap_in_chronos_context(raw_code, asset_id=asset_id)
+        # 4. Обертка в безопасный Chronos-контекст (используем ОЧИЩЕННЫЙ код!)
+        final_code = self.api_helper.wrap_in_chronos_context(
+            validation["cleaned_code"],  # ← Здесь исправлено: cleaned_code, а не raw_code
+            asset_id=asset_id
+        )
 
         # 5. Исполнение в Blender
         logging.info(f"🛠 Sending validated code to Blender for Asset: {asset_id}")
         result = await self.blender.run_python(final_code)
 
         if result.get("status") == "success":
-            # 6. Если всё ок, фиксируем ассет в реестре
-            self.asset_factory.register_new_mesh(
-                category="generated", 
-                sub_type=category, 
-                metadata={"prompt": prompt, "engine": "Chronos_v2"}
-            )
+            self.asset_factory.register_asset(asset_id, metadata={"category": category, "prompt": prompt})
             logging.info(f"✅ Asset {asset_id} created and registered.")
+            return {
+                "status": "success",
+                "asset_id": asset_id,
+                "message": f"Asset {asset_id} generated successfully"
+            }
         else:
             logging.error(f"❌ Blender execution failed: {result.get('message')}")
-
-        return result
+            return {
+                "status": "error",
+                "message": result.get('message', 'Unknown error'),
+                "asset_id": asset_id
+            }
 
     async def shutdown(self):
         """Корректное завершение работы"""
