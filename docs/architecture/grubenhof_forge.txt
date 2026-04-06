@@ -1,0 +1,13 @@
+[CATEGORY: ARCHITECTURE]
+[SUB_TYPE: INDUSTRIAL]
+[ID: STR_FORGE_GRUBEN_01]
+
+ОПИСАНИЕ: Полуземлянка, оборудованная под кузницу. Пол утоплен в землю, стены низкие. Внутри располагается горн и наковальня.
+
+Размеры: Длина 5.0м, Ширина 4.0м, Высота 2.5м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- ground_depth: 0.8m
+- pillar_count: 2
+- roof_material: thatch
+- has_hearth: true

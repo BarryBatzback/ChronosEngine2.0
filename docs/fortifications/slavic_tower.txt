@@ -1,0 +1,14 @@
+[CATEGORY: FORTIFICATION]
+[SUB_TYPE: DEFENSE]
+[ID: STR_SLAVIC_TOWER_01]
+
+ОПИСАНИЕ: Рубленая деревянная башня (вежа). Квадратное основание, несколько ярусов. Используется для обзора и ведения боя стрелками.
+
+Размеры: Длина 4.0м, Ширина 4.0м, Высота 9.0м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- log_diameter: 0.25m
+- levels_count: 3
+- level_height: 3.0m
+- window_slits: true
+- roof_type: pyramid

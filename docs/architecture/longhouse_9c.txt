@@ -1,0 +1,15 @@
+[CATEGORY: ARCHITECTURE]
+[SUB_TYPE: RESIDENTIAL]
+[ID: STR_LONGHOUSE_9C_01]
+
+ОПИСАНИЕ: Традиционный скандинавский длинный дом. Каркасно-столбовая конструкция с изогнутыми стенами и массивной двускатной крышей. Центральный очаг и спальные помосты вдоль стен.
+
+Размеры: Длина 18.0м, Ширина 6.5м, Высота 5.0м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- pillar_count: 12
+- pillar_thickness: 0.3m
+- wall_depth: 0.2m
+- roof_angle: 45
+- roof_material: turf
+- floor_material: packed_earth

@@ -52,3 +52,6 @@ class BlenderService:
             logger.error(f"❌ Socket error: {e}")
             self.websocket = None 
             return {"status": "error", "message": str(e)}
+    async def close(self):
+        if self.websocket:
+            await self.websocket.close()

@@ -1,0 +1,11 @@
+[CATEGORY: ARCHITECTURE]
+[SUB_TYPE: RESIDENTIAL]
+[ID: STR_LONGHOUSE_01]
+
+ОПИСАНИЕ: Традиционный длинный дом IX века.
+Размеры: Длина 15.0м, Ширина 6.0м, Высота 4.5м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- pillar_thickness: 0.25m
+- wall_depth: 0.15m
+- roof_angle: 45

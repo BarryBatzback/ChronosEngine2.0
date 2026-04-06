@@ -21,9 +21,9 @@ class LLMService:
         self.base_url = f"{self.host}:{self.port}"
         
         # DeepSeek модели (быстрее)
-        self.model_coordinator = config.get('model_coordinator', 'deepseek-coder:6.7b')
-        self.model_specialist = config.get('model_specialist', 'deepseek-coder:6.7b')
-        self.model_vision = config.get('model_vision', 'deepseek-coder:6.7b')
+        self.model_coordinator = config.get('model_coordinator', 'deepseek-coder-v2:latest')
+        self.model_specialist = config.get('model_specialist', 'qwen2.5:14b')
+        self.model_vision = config.get('model_vision', 'llama3.1:latest')
         
         self.temperature = config.get('temperature', 0.3)
         self.max_tokens = config.get('max_tokens', 4096)

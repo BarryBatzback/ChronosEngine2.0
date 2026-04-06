@@ -1,0 +1,13 @@
+[CATEGORY: ENVIRONMENT]
+[SUB_TYPE: INFRASTRUCTURE]
+[ID: ENV_WELL_01]
+
+ОПИСАНИЕ: Деревянный срубной колодец с навесом и воротом для подъема воды.
+
+Размеры: Длина 1.5м, Ширина 1.5м, Высота 2.2м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- log_diameter: 0.15m
+- base_levels: 4
+- has_roof: true
+- pulley_system: true

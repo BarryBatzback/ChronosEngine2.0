@@ -1,0 +1,13 @@
+[CATEGORY: FORTIFICATION]
+[SUB_TYPE: DEFENSE]
+[ID: STR_PALISADE_MOD_01]
+
+ОПИСАНИЕ: Модульный сегмент частокола из заостренных бревен для ограждения поселений и крепостей.
+
+Размеры: Длина 3.0м, Ширина 0.3m, Высота 3.2м.
+
+ПАРАМЕТРЫ ДЛЯ GENERATOR:
+- logs_in_segment: 10
+- log_diameter: 0.3m
+- sharpen_ratio: 0.25
+- variance_height: 0.3m

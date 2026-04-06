@@ -17,6 +17,128 @@
                 "carolingian"
             ],
             "default_mat": "MAT_FE_001"
+        },
+        "STR_LONGHOUSE_01": {
+            "uid": "STR_LONGHOUSE_01",
+            "category": "architecture",
+            "sub_category": "residential",
+            "description": "Традиционный длинный дом IX века.\nРазмеры: Длина 15.0м, Ширина 6.0м, Высота 4.5м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 15.0,
+                    "width": 6.0,
+                    "height": 4.5
+                },
+                "generation_params": {
+                    " pillar_thickness": 0.25,
+                    " wall_depth": 0.15,
+                    " roof_angle": "45"
+                }
+            },
+            "status": "raw_description"
+        },
+        "STR_LONGHOUSE_9C_01": {
+            "uid": "STR_LONGHOUSE_9C_01",
+            "category": "architecture",
+            "sub_category": "residential",
+            "description": "Традиционный скандинавский длинный дом. Каркасно-столбовая конструкция с изогнутыми стенами и массивной двускатной крышей. Центральный очаг и спальные помосты вдоль стен.\n\nРазмеры: Длина 18.0м, Ширина 6.5м, Высота 5.0м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 18.0,
+                    "width": 6.5,
+                    "height": 5.0
+                },
+                "generation_params": {
+                    " pillar_count": "12",
+                    " pillar_thickness": 0.3,
+                    " wall_depth": 0.2,
+                    " roof_angle": "45",
+                    " roof_material": "turf",
+                    " floor_material": "packed_earth"
+                }
+            },
+            "status": "raw_description"
+        },
+        "STR_SLAVIC_TOWER_01": {
+            "uid": "STR_SLAVIC_TOWER_01",
+            "category": "fortification",
+            "sub_category": "defense",
+            "description": "Рубленая деревянная башня (вежа). Квадратное основание, несколько ярусов. Используется для обзора и ведения боя стрелками.\n\nРазмеры: Длина 4.0м, Ширина 4.0м, Высота 9.0м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 4.0,
+                    "width": 4.0,
+                    "height": 9.0
+                },
+                "generation_params": {
+                    " log_diameter": 0.25,
+                    " levels_count": "3",
+                    " level_height": 3.0,
+                    " window_slits": "true",
+                    " roof_type": "pyramid"
+                }
+            },
+            "status": "raw_description"
+        },
+        "STR_FORGE_GRUBEN_01": {
+            "uid": "STR_FORGE_GRUBEN_01",
+            "category": "architecture",
+            "sub_category": "industrial",
+            "description": "Полуземлянка, оборудованная под кузницу. Пол утоплен в землю, стены низкие. Внутри располагается горн и наковальня.\n\nРазмеры: Длина 5.0м, Ширина 4.0м, Высота 2.5м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 5.0,
+                    "width": 4.0,
+                    "height": 2.5
+                },
+                "generation_params": {
+                    " ground_depth": 0.8,
+                    " pillar_count": "2",
+                    " roof_material": "thatch",
+                    " has_hearth": "true"
+                }
+            },
+            "status": "raw_description"
+        },
+        "ENV_WELL_01": {
+            "uid": "ENV_WELL_01",
+            "category": "environment",
+            "sub_category": "infrastructure",
+            "description": "Деревянный срубной колодец с навесом и воротом для подъема воды.\n\nРазмеры: Длина 1.5м, Ширина 1.5м, Высота 2.2м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 1.5,
+                    "width": 1.5,
+                    "height": 2.2
+                },
+                "generation_params": {
+                    " log_diameter": 0.15,
+                    " base_levels": "4",
+                    " has_roof": "true",
+                    " pulley_system": "true"
+                }
+            },
+            "status": "raw_description"
+        },
+        "STR_PALISADE_MOD_01": {
+            "uid": "STR_PALISADE_MOD_01",
+            "category": "fortification",
+            "sub_category": "defense",
+            "description": "Модульный сегмент частокола из заостренных бревен для ограждения поселений и крепостей.\n\nРазмеры: Длина 3.0м, Ширина 0.3m, Высота 3.2м.",
+            "visual_data": {
+                "dimensions": {
+                    "length": 3.0,
+                    "width": 0.3,
+                    "height": 3.2
+                },
+                "generation_params": {
+                    " logs_in_segment": "10",
+                    " log_diameter": 0.3,
+                    " sharpen_ratio": "0.25",
+                    " variance_height": 0.3
+                }
+            },
+            "status": "raw_description"
         }
     }
 }
