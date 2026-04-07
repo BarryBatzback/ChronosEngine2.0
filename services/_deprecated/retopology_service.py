@@ -3,7 +3,6 @@
 """
 
 
-
 class RetopologyService:
     """Оптимизация 3D моделей для игр"""
 

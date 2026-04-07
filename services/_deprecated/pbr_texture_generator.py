@@ -3,7 +3,6 @@
 """
 
 
-
 class PBRTextureGenerator:
     def __init__(self, llm_service):
         self.llm = llm_service

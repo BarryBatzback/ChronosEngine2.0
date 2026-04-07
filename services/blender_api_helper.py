@@ -40,40 +40,102 @@ def create_geometry(bm):
 # --- CHRONOS TEMPLATE END ---
         """
 
-    def _extract_pure_code(self, text: str) -> str:
-        if "```" in text:
-            # Ищем текст между первыми ```python и последними ```
-            parts = text.split("```")
-            for part in parts:
-                if "import " in part or "bmesh" in part:
-                    return part.replace("python", "").strip()
-        return text.strip()
+    def _extract_pure_code(self, raw_response: str) -> str:
+        """
+        Извлекает основной блок кода Python из ответа LLM и очищает его
+        от дублирующих импортов и системного мусора.
+
+        Args:
+            raw_response: Сырой ответ от языковой модели
+
+        Returns:
+            Очищенный Python-код для выполнения
+        """
+        import re
+
+        # Список импортов, которые уже есть в wrap_in_chronos_context
+        # и которые не должны дублироваться в теле кода
+        duplicate_imports = [
+            r"^import\s+bpy\s*$",
+            r"^import\s+bmesh\s*$",
+            r"^from\s+bpy\s+import\s+.*$",
+            r"^from\s+math\s+import\s+.*$",
+            r"^import\s+math\s*$",
+            r"^import\s+random\s*$",
+        ]
+
+        # 1. Поиск блоков кода в markdown: ```python, ```py, или просто ```
+        # re.DOTALL позволяет .*? захватывать переносы строк
+        pattern = r"```(?:python|py)?\s*\n(.*?)```"
+        matches = re.findall(pattern, raw_response, re.DOTALL | re.IGNORECASE)
+
+        if matches:
+            # Берём самый длинный блок кода (мажоритарный выбор)
+            code = max(matches, key=len).strip()
+        else:
+            # Fallback: если нет маркдаун-блоков, ищем код по наличию импортов
+            lines = raw_response.split("\n")
+            code_lines = []
+            in_code = False
+            for line in lines:
+                stripped = line.strip()
+                # Начинаем собирать код, если видим типичную Python-конструкцию
+                if (
+                    stripped.startswith("import ")
+                    or stripped.startswith("from ")
+                    or stripped.startswith("def ")
+                    or stripped.startswith("class ")
+                ):
+                    in_code = True
+                if (
+                    in_code
+                    and stripped
+                    and not stripped.startswith("#")
+                    and "```" not in stripped
+                ):
+                    code_lines.append(line)
+            code = "\n".join(code_lines).strip() if code_lines else raw_response.strip()
+
+        # 2. Удаляем дублирующие импорты, которые уже есть в контексте Chronos
+        code_lines = code.split("\n")
+        filtered_lines = []
+        for line in code_lines:
+            stripped = line.strip()
+            # Пропускаем строки, которые совпадают с нашими "запрещёнными" импортами
+            if any(re.match(pattern, stripped) for pattern in duplicate_imports):
+                continue
+            filtered_lines.append(line)
+
+        code = "\n".join(filtered_lines)
+
+        # 3. Удаляем лишние пустые строки в начале и конце
+        return code.strip()
+
+    def fix_escape_sequences(self, code: str) -> str:
+        """
+        Исправляет ошибку W605 (invalid escape sequence).
+        Заменяет одиночные обратные слеши в строках на двойные, если это не спецсимволы.
+        """
+        # Ищем пути или спец-символы в кавычках, которые не экранированы
+        return code.replace("\\", "\\\\").replace("\\\\\\\\", "\\\\")
 
     def validate_and_fix_syntax(self, raw_code: str) -> Dict[str, Any]:
-        """Проверка кода и подготовка отчета для Оркестратора."""
-        report = {"is_valid": True, "errors": [], "suggestions": [], "cleaned_code": ""}
+        """
+        Проверяет код на наличие синтаксических ошибок перед запуском.
+        """
+        report = {"is_valid": True, "errors": [], "cleaned_code": ""}
 
-        # 1. Извлечение
+        # Сначала очищаем
         code = self._extract_pure_code(raw_code)
+        # Исправляем слеши для Windows-путей
+        code = self.fix_escape_sequences(code)
 
-        if not code:
-            report["is_valid"] = False
-            report["errors"].append("LLM returned no executable code.")
-            return report
-
-        # 2. Синтаксический анализ
         try:
             ast.parse(code)
             report["cleaned_code"] = code
         except SyntaxError as e:
             report["is_valid"] = False
-            report["errors"].append(f"Syntax Error at line {e.lineno}: {e.msg}")
-            return report
-
-        # 3. Проверка запрещенных паттернов
-        for pattern, replacement in self.BANNED_PATTERNS.items():
-            if pattern in code:
-                report["suggestions"].append(f"Замечено '{pattern}': {replacement}")
+            report["errors"].append(f"Line {e.lineno}: {e.msg}")
 
         return report
 

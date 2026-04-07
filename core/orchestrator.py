@@ -7,6 +7,7 @@ from services.llm_service import LLMService
 from services.blender_service import BlenderService
 from services.blender_api_helper import BlenderAPIHelper
 from services.asset_factory import AssetFactory
+from services.semantic_analyzer import SemanticAnalyzer
 
 
 class Orchestrator:
@@ -16,6 +17,7 @@ class Orchestrator:
 
         # Инициализация сервисов
         self.llm = LLMService(config.get("llm", {}))
+        self.semantic = SemanticAnalyzer()
         self.blender = BlenderService(config.get("blender", {}))
         self.api_helper = BlenderAPIHelper()
         self.asset_factory = AssetFactory(self.root)
@@ -44,6 +46,7 @@ class Orchestrator:
                 "message": "Syntax validation failed",
                 "details": validation["errors"],
             }
+        # prompt = self.semantic.enhance(prompt, category)
 
         if validation["suggestions"]:
             logging.warning(f"⚠️ API Suggestions: {validation['suggestions']}")
