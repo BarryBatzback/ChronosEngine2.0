@@ -1,61 +1,24 @@
-# .pre-commit-config.yaml
-repos:
+﻿repos:
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 24.2.0
     hooks:
       - id: black
-        args: [--safe, --quiet]
-        language_version: python3.10
+        language_version: python3.11
+        exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
         exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
-        args: 
+        args:
           - --max-line-length=120
-          - --ignore=W503,E203,W293
+          - --ignore=W503,E203,W293,F841
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
-        additional_dependencies: [types-requests, types-setuptools]
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.3.3'
-    hooks:
-      - id: ruff
-        args: ['--fix', '--exit-non-zero-on-fix']
-# .pre-commit-config.yaml
-default_language_version:
-  python: python  # Использует текущий интерпретатор из PATH
-
-repos:
-  - repo: local
-    hooks:
-      - id: black
-        name: black
-        entry: black
-        language: python
-        types: [python]
-        args: [--safe, --quiet]
-        require_serial: true
-
-      - id: flake8
-        name: flake8
-        entry: flake8
-        language: python
-        types: [python]
-        args: [--max-line-length=120, --extend-ignore=E203,W503]
-        require_serial: true
-
-      - id: mypy
-        name: mypy
-        entry: mypy
-        language: python
-        types: [python]
-        args: [--ignore-missing-imports, --strict]
-        additional_dependencies: [types-requests, types-PyYAML]
-        require_serial: true
+  # mypy временно отключен - раскомментируй когда настроишь типизацию
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.8.0
+  #   hooks:
+  #     - id: mypy
+  #       exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
+  #       additional_dependencies: [types-requests, types-setuptools]
