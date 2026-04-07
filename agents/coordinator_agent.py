@@ -2,9 +2,7 @@
 Агент-координатор для анализа запросов
 """
 
-import json
 from typing import Dict, Any, List
-from loguru import logger
 
 
 class CoordinatorAgent:
@@ -40,17 +38,19 @@ class CoordinatorAgent:
             {
                 "type": "geometry",
                 "plan": plan,
-                "description": f"Create {plan.get('object_type', 'object')}"
+                "description": f"Create {plan.get('object_type', 'object')}",
             }
         ]
-        
+
         # Добавляем задачу на материалы
-        materials = plan.get('materials', [])
+        materials = plan.get("materials", [])
         for material in materials:
-            tasks.append({
-                "type": "material",
-                "material_type": material,
-                "description": f"Apply {material} material"
-            })
-        
+            tasks.append(
+                {
+                    "type": "material",
+                    "material_type": material,
+                    "description": f"Apply {material} material",
+                }
+            )
+
         return tasks

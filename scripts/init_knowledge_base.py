@@ -12,18 +12,18 @@ from loguru import logger
 if __name__ == "__main__":
     # Правильный путь к документации
     DOCS_PATH = r"D:\ChronosEngine2.0\tools\blender_python_reference_5_1"
-    
+
     logger.info(f"📁 Using documentation path: {DOCS_PATH}")
-    
+
     # Проверяем существует ли путь
     if not os.path.exists(DOCS_PATH):
         logger.error(f"❌ Path does not exist: {DOCS_PATH}")
         exit(1)
-    
+
     # Проверяем есть ли HTML файлы
     html_files = list(Path(DOCS_PATH).rglob("*.html"))
     logger.info(f"📄 Found {len(html_files)} HTML files")
-    
+
     if not html_files:
         logger.warning("No HTML files found. Check your documentation path.")
         # Посмотрим что есть в папке
@@ -32,11 +32,11 @@ if __name__ == "__main__":
         for item in items[:10]:  # первые 10 элементов
             print(f"  - {item.name} ({'dir' if item.is_dir() else 'file'})")
         exit(1)
-    
+
     # Инициализируем базу знаний
     logger.info("Initializing knowledge base...")
     kb = BlenderKnowledgeBase(docs_path=DOCS_PATH)
-    
+
     # Проверяем что добавилось
     count = kb.collection.count()
     logger.success(f"✅ Knowledge base initialized with {count} documents!")

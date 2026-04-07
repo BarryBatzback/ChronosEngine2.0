@@ -2,8 +2,6 @@
 Генерация PBR текстур через узлы Blender
 """
 
-from typing import Dict, Any
-from loguru import logger
 
 
 class PBRTextureGenerator:
@@ -11,7 +9,7 @@ class PBRTextureGenerator:
         self.llm = llm_service
 
     def create_wood_material(self, name: str = "Wood") -> str:
-        return '''
+        return """
 def create_wood_material():
     mat = bpy.data.materials.new("Wood")
     mat.use_nodes = True
@@ -43,10 +41,10 @@ def create_wood_material():
 
 wood_mat = create_wood_material()
 print("✅ Wood material created")
-'''
+"""
 
     def create_metal_material(self, name: str = "Metal") -> str:
-        return '''
+        return """
 def create_metal_material():
     mat = bpy.data.materials.new("Metal")
     mat.use_nodes = True
@@ -68,4 +66,4 @@ def create_metal_material():
 
 metal_mat = create_metal_material()
 print("✅ Metal material created")
-'''
+"""

@@ -4,16 +4,18 @@ from services.procedural_mesh_generator import ProceduralMeshGenerator
 # Monkey patch для обработки ошибок
 original_generate = ProceduralMeshGenerator.generate_code
 
+
 def safe_generate_code(self, structure: dict, api_context: str = "") -> str:
     """Безопасная генерация кода с обработкой ошибок"""
     try:
-        if not structure or 'components' not in structure:
+        if not structure or "components" not in structure:
             return self._generate_fallback_code()
-        
+
         return original_generate(self, structure, api_context)
     except Exception as e:
         print(f"⚠️ Generator error: {e}, using fallback")
         return self._generate_fallback_code()
+
 
 def _generate_fallback_code(self) -> str:
     """Fallback код для создания меча"""
@@ -57,6 +59,7 @@ for obj in bpy.context.selected_objects:
 
 bpy.ops.object.select_all(action='DESELECT')
 """
+
 
 ProceduralMeshGenerator.generate_code = safe_generate_code
 ProceduralMeshGenerator._generate_fallback_code = _generate_fallback_code

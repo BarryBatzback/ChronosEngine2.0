@@ -3,8 +3,7 @@
 Превращает "стол" в структурированное описание компонентов
 """
 
-import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 from loguru import logger
 
 
@@ -32,7 +31,9 @@ class GeometryAnalyzer:
         """
         prompt = self._build_analysis_prompt(object_name, context)
         response = await self.llm.generate_json(prompt)
-        logger.info(f"📐 Analyzed {object_name}: {len(response.get('components', []))} components")
+        logger.info(
+            f"📐 Analyzed {object_name}: {len(response.get('components', []))} components"
+        )
         return response
 
     def _build_analysis_prompt(self, object_name: str, context: str) -> str:

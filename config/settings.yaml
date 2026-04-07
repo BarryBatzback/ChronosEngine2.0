@@ -22,16 +22,14 @@ llm:
   host: http://localhost
   port: 11434
   
-  # DeepSeek модели (быстрее Qwen)
-  model_coordinator: deepseek-coder:6.7b
-  model_specialist: deepseek-coder:6.7b
-  model_vision: deepseek-coder:6.7b
+  model_coordinator: bqwen2.5-coder:7b
+  model_specialist: gemma2:9
+  model_vision: gemma2:27b
   
-  # Параметры генерации
-  temperature: 0.3
+  temperature: 0.1
   max_tokens: 4096
   num_ctx: 8192
-  keep_alive: 5m
+  keep_alive: 5m.
   num_gpu: 1
 
 database:

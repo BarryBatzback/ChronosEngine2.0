@@ -6,7 +6,6 @@
 import json
 import time
 import requests
-import tempfile
 import os
 import websocket
 import uuid
@@ -20,10 +19,10 @@ class ComfyUIService:
     def __init__(self, config: Dict = None):
         if config is None:
             config = {}
-        self.base_url = config.get('base_url', 'http://127.0.0.1:8188')
+        self.base_url = config.get("base_url", "http://127.0.0.1:8188")
         self.client_id = str(uuid.uuid4())
-        self.output_dir = config.get('output_dir', './output/3d_models')
-        self.timeout = config.get('timeout', 300)
+        self.output_dir = config.get("output_dir", "./output/3d_models")
+        self.timeout = config.get("timeout", 300)
         self.ws = None
 
         os.makedirs(self.output_dir, exist_ok=True)
@@ -43,12 +42,10 @@ class ComfyUIService:
         try:
             payload = {"prompt": workflow, "client_id": self.client_id}
             response = requests.post(
-                f"{self.base_url}/prompt",
-                json=payload,
-                timeout=30
+                f"{self.base_url}/prompt", json=payload, timeout=30
             )
             if response.status_code == 200:
-                prompt_id = response.json().get('prompt_id')
+                prompt_id = response.json().get("prompt_id")
                 logger.info(f"⏳ Prompt queued: {prompt_id}")
                 return prompt_id
             else:
@@ -60,7 +57,7 @@ class ComfyUIService:
 
     def wait_for_completion(self, prompt_id: str) -> Optional[Dict]:
         """Ожидание завершения генерации через WebSocket"""
-        ws_url = self.base_url.replace('http', 'ws') + '/ws'
+        ws_url = self.base_url.replace("http", "ws") + "/ws"
         try:
             self.ws = websocket.WebSocket()
             self.ws.connect(ws_url)
@@ -73,8 +70,8 @@ class ComfyUIService:
                     continue
 
                 data = json.loads(out)
-                if data.get('type') == 'executing':
-                    node = data.get('data', {}).get('node')
+                if data.get("type") == "executing":
+                    node = data.get("data", {}).get("node")
                     if node is None:
                         # Генерация завершена
                         return self.get_history(prompt_id)
@@ -106,22 +103,21 @@ class ComfyUIService:
 
     def get_output_file(self, history: Dict) -> Optional[str]:
         """Извлечение пути к выходному GLB файлу"""
-        outputs = history.get('outputs', {})
+        outputs = history.get("outputs", {})
         for node_id, node_output in outputs.items():
-            if '3d' in node_output:
-                for item in node_output['3d']:
-                    if item.get('type') == 'glb':
-                        filename = item.get('filename')
-                        subfolder = item.get('subfolder', '')
+            if "3d" in node_output:
+                for item in node_output["3d"]:
+                    if item.get("type") == "glb":
+                        filename = item.get("filename")
+                        subfolder = item.get("subfolder", "")
                         filepath = os.path.join(
-                            self.output_dir, 
-                            f"model_{int(time.time())}.glb"
+                            self.output_dir, f"model_{int(time.time())}.glb"
                         )
                         # Скачиваем файл
                         download_url = f"{self.base_url}/view?filename={filename}&subfolder={subfolder}&type=output"
                         response = requests.get(download_url)
                         if response.status_code == 200:
-                            with open(filepath, 'wb') as f:
+                            with open(filepath, "wb") as f:
                                 f.write(response.content)
                             logger.info(f"📥 Model saved: {filepath}")
                             return filepath
@@ -153,15 +149,15 @@ class ComfyUIService:
     def _inject_text_prompt(self, workflow: Dict, prompt: str) -> Dict:
         """Внедрение текстового промпта в workflow"""
         for node_id, node in workflow.items():
-            if node.get('class_type') == 'CLIPTextEncode':
-                node['inputs']['text'] = prompt
+            if node.get("class_type") == "CLIPTextEncode":
+                node["inputs"]["text"] = prompt
                 logger.debug(f"📝 Injected prompt into node {node_id}")
                 break
         return workflow
 
     def import_to_blender(self, glb_path: str) -> Dict[str, Any]:
         """Генерация кода для импорта GLB в Blender"""
-        import_code = f'''
+        import_code = f"""
 import bpy
 import os
 
@@ -175,12 +171,9 @@ bpy.ops.import_scene.gltf(filepath=glb_path)
 
 print(f"✅ Model imported from {{glb_path}}")
 print(f"📊 Objects in scene: {{len(bpy.context.scene.objects)}}")
-'''
-        return {
-            'status': 'ok',
-            'code': import_code,
-            'file_path': glb_path
-        }
+"""
+        return {"status": "ok", "code": import_code, "file_path": glb_path}
+
     async def run_python(self, code: str):
         # Если соединение упало (timeout), пытаемся подключиться заново перед отправкой
         if not self.websocket or self.websocket.closed:

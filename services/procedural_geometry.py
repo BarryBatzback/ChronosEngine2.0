@@ -2,9 +2,7 @@
 Процедурная генерация кода на основе семантической структуры
 """
 
-import json
-from typing import Dict, Any, List
-from loguru import logger
+from typing import Dict, Any
 
 
 class ProceduralGeometryGenerator:
@@ -14,10 +12,10 @@ class ProceduralGeometryGenerator:
         """
         Генерация Python кода для Blender на основе структуры
         """
-        components = structure.get('components', [])
-        materials = structure.get('materials', {})
-        modifiers = structure.get('modifiers', [])
-        connections = structure.get('connections', [])
+        components = structure.get("components", [])
+        materials = structure.get("materials", {})
+        modifiers = structure.get("modifiers", [])
+        connections = structure.get("connections", [])
 
         code_lines = [
             "import bpy",
@@ -36,7 +34,7 @@ class ProceduralGeometryGenerator:
             "# ============================================================",
             "",
             "def create_box(name, width, height, depth, position, rotation=None):",
-            "    \"\"\"Создание box\"\"\"",
+            '    """Создание box"""',
             "    bpy.ops.mesh.primitive_cube_add(size=1, location=position)",
             "    obj = bpy.context.active_object",
             "    obj.scale = (width, height, depth)",
@@ -46,7 +44,7 @@ class ProceduralGeometryGenerator:
             "    return obj",
             "",
             "def create_cylinder(name, radius, height, position, rotation=None):",
-            "    \"\"\"Создание цилиндра\"\"\"",
+            '    """Создание цилиндра"""',
             "    bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=height, location=position)",
             "    obj = bpy.context.active_object",
             "    obj.name = name",
@@ -55,28 +53,28 @@ class ProceduralGeometryGenerator:
             "    return obj",
             "",
             "def create_sphere(name, radius, position):",
-            "    \"\"\"Создание сферы\"\"\"",
+            '    """Создание сферы"""',
             "    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, location=position)",
             "    obj = bpy.context.active_object",
             "    obj.name = name",
             "    return obj",
             "",
             "def create_cone(name, radius, height, position):",
-            "    \"\"\"Создание конуса\"\"\"",
+            '    """Создание конуса"""',
             "    bpy.ops.mesh.primitive_cone_add(radius1=radius, depth=height, location=position)",
             "    obj = bpy.context.active_object",
             "    obj.name = name",
             "    return obj",
             "",
             "def create_torus(name, radius, radius2, position):",
-            "    \"\"\"Создание тора\"\"\"",
+            '    """Создание тора"""',
             "    bpy.ops.mesh.primitive_torus_add(major_radius=radius, minor_radius=radius2, location=position)",
             "    obj = bpy.context.active_object",
             "    obj.name = name",
             "    return obj",
             "",
             "def create_extruded_shape(name, points, height, position):",
-            "    \"\"\"Создание экструдированной формы (для лезвий)\"\"\"",
+            '    """Создание экструдированной формы (для лезвий)"""',
             "    bm = bmesh.new()",
             "    verts = []",
             f"    for p in {points}:",
@@ -100,7 +98,7 @@ class ProceduralGeometryGenerator:
             "# ============================================================",
             "",
             "def create_material(name, mat_type):",
-            "    \"\"\"Создание PBR материала\"\"\"",
+            '    """Создание PBR материала"""',
             "    mat = bpy.data.materials.new(name=name)",
             "    mat.use_nodes = True",
             "    nodes = mat.node_tree.nodes",
@@ -158,7 +156,7 @@ class ProceduralGeometryGenerator:
             "# ============================================================",
             "",
             "def add_modifiers(obj, modifiers_list):",
-            "    \"\"\"Добавление модификаторов\"\"\"",
+            '    """Добавление модификаторов"""',
             "    for mod_name in modifiers_list:",
             "        if mod_name == 'bevel':",
             "            mod = obj.modifiers.new(name='Bevel', type='BEVEL')",
@@ -176,7 +174,7 @@ class ProceduralGeometryGenerator:
             "# ============================================================",
             "# СОЗДАНИЕ КОМПОНЕНТОВ",
             "# ============================================================",
-            ""
+            "",
         ]
 
         # Словарь для хранения созданных объектов
@@ -184,55 +182,73 @@ class ProceduralGeometryGenerator:
 
         # Генерируем код для каждого компонента
         for comp in components:
-            name = comp.get('name')
-            comp_type = comp.get('type')
-            position = comp.get('position', [0, 0, 0])
-            rotation = comp.get('rotation', [0, 0, 0])
+            name = comp.get("name")
+            comp_type = comp.get("type")
+            position = comp.get("position", [0, 0, 0])
+            rotation = comp.get("rotation", [0, 0, 0])
 
             code_lines.append(f"# Создание {name}")
 
-            if comp_type == 'box':
-                width = comp.get('width', 1.0)
-                height = comp.get('height', 1.0)
-                depth = comp.get('depth', 1.0)
-                code_lines.append(f"obj_{name} = create_box('{name}', {width}, {height}, {depth}, {position}, {rotation})")
+            if comp_type == "box":
+                width = comp.get("width", 1.0)
+                height = comp.get("height", 1.0)
+                depth = comp.get("depth", 1.0)
+                code_lines.append(
+                    f"obj_{name} = create_box('{name}', {width}, {height}, {depth}, {position}, {rotation})"
+                )
 
-            elif comp_type == 'cylinder':
-                radius = comp.get('radius', 0.5)
-                height = comp.get('height', 1.0)
-                code_lines.append(f"obj_{name} = create_cylinder('{name}', {radius}, {height}, {position}, {rotation})")
+            elif comp_type == "cylinder":
+                radius = comp.get("radius", 0.5)
+                height = comp.get("height", 1.0)
+                code_lines.append(
+                    f"obj_{name} = create_cylinder('{name}', {radius}, {height}, {position}, {rotation})"
+                )
 
-            elif comp_type == 'sphere':
-                radius = comp.get('radius', 0.5)
-                code_lines.append(f"obj_{name} = create_sphere('{name}', {radius}, {position})")
+            elif comp_type == "sphere":
+                radius = comp.get("radius", 0.5)
+                code_lines.append(
+                    f"obj_{name} = create_sphere('{name}', {radius}, {position})"
+                )
 
-            elif comp_type == 'cone':
-                radius = comp.get('radius', 0.5)
-                height = comp.get('height', 1.0)
-                code_lines.append(f"obj_{name} = create_cone('{name}', {radius}, {height}, {position})")
+            elif comp_type == "cone":
+                radius = comp.get("radius", 0.5)
+                height = comp.get("height", 1.0)
+                code_lines.append(
+                    f"obj_{name} = create_cone('{name}', {radius}, {height}, {position})"
+                )
 
-            elif comp_type == 'torus':
-                radius = comp.get('radius', 0.5)
-                radius2 = comp.get('radius2', 0.1)
-                code_lines.append(f"obj_{name} = create_torus('{name}', {radius}, {radius2}, {position})")
+            elif comp_type == "torus":
+                radius = comp.get("radius", 0.5)
+                radius2 = comp.get("radius2", 0.1)
+                code_lines.append(
+                    f"obj_{name} = create_torus('{name}', {radius}, {radius2}, {position})"
+                )
 
-            elif comp_type == 'extruded_shape':
-                points = comp.get('points', [[0, 0], [0.1, 0.5], [0, 1], [-0.1, 0.5]])  # Дефолтное значение
-                height = comp.get('height', 2.0)
-                code_lines.append(f"obj_{name} = create_extruded_shape('{name}', {points}, {height}, {position})")
+            elif comp_type == "extruded_shape":
+                points = comp.get(
+                    "points", [[0, 0], [0.1, 0.5], [0, 1], [-0.1, 0.5]]
+                )  # Дефолтное значение
+                height = comp.get("height", 2.0)
+                code_lines.append(
+                    f"obj_{name} = create_extruded_shape('{name}', {points}, {height}, {position})"
+                )
 
             created_objects[name] = f"obj_{name}"
             code_lines.append("")
 
         # Применяем материалы
-        code_lines.append("# ============================================================")
+        code_lines.append(
+            "# ============================================================"
+        )
         code_lines.append("# ПРИМЕНЕНИЕ МАТЕРИАЛОВ")
-        code_lines.append("# ============================================================")
+        code_lines.append(
+            "# ============================================================"
+        )
         code_lines.append("")
 
-        default_material = materials.get('default', 'wood')
+        default_material = materials.get("default", "wood")
         for comp in components:
-            name = comp.get('name')
+            name = comp.get("name")
             mat_type = materials.get(name, default_material)
             code_lines.append(f"if obj_{name}:")
             code_lines.append(f"    mat = create_material('{name}_mat', '{mat_type}')")
@@ -244,34 +260,46 @@ class ProceduralGeometryGenerator:
 
         # Применяем модификаторы
         if modifiers:
-            code_lines.append("# ============================================================")
+            code_lines.append(
+                "# ============================================================"
+            )
             code_lines.append("# ПРИМЕНЕНИЕ МОДИФИКАТОРОВ")
-            code_lines.append("# ============================================================")
+            code_lines.append(
+                "# ============================================================"
+            )
             code_lines.append("")
             for comp in components:
-                name = comp.get('name')
+                name = comp.get("name")
                 code_lines.append(f"if obj_{name}:")
                 code_lines.append(f"    add_modifiers(obj_{name}, {modifiers})")
             code_lines.append("")
 
         # Parent связи
         if connections:
-            code_lines.append("# ============================================================")
+            code_lines.append(
+                "# ============================================================"
+            )
             code_lines.append("# СОЗДАНИЕ ИЕРАРХИИ")
-            code_lines.append("# ============================================================")
+            code_lines.append(
+                "# ============================================================"
+            )
             code_lines.append("")
             for conn in connections:
-                parent = conn.get('from')
-                child = conn.get('to')
+                parent = conn.get("from")
+                child = conn.get("to")
                 code_lines.append(f"if obj_{parent} and obj_{child}:")
                 code_lines.append(f"    obj_{child}.parent = obj_{parent}")
             code_lines.append("")
 
         # Финальное сообщение
-        code_lines.append("# ============================================================")
+        code_lines.append(
+            "# ============================================================"
+        )
         code_lines.append("# ЗАВЕРШЕНИЕ")
-        code_lines.append("# ============================================================")
+        code_lines.append(
+            "# ============================================================"
+        )
         code_lines.append("print('✅ Object created successfully!')")
         code_lines.append(f"print('📊 Components: {len(components)}')")
 
-        return '\n'.join(code_lines)
+        return "\n".join(code_lines)

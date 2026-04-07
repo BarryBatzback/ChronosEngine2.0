@@ -2,8 +2,6 @@
 Автоматический риггинг и анимация персонажей
 """
 
-from typing import Dict, Any, Optional
-from loguru import logger
 
 
 class AutoRigService:
@@ -107,14 +105,14 @@ for frame in range(0, 41):
     height = math.sin(progress * math.pi * 2) * 0.1
     armature.location.z = height
     armature.keyframe_insert(data_path='location', index=2)
-"""
+""",
         }
 
-        return f'''
+        return f"""
 import bpy
 import math
 
 {animations.get(animation_type, animations["idle"])}
 
 print("✅ Animation created")
-'''
+"""

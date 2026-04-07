@@ -1,7 +1,5 @@
-
 import re
 from typing import Dict, Any
-from loguru import logger
 
 
 class CodeAgent:
@@ -14,8 +12,8 @@ class CodeAgent:
         return self._clean_code(raw_code)
 
     def _clean_code(self, code: str) -> str:
-        code = re.sub(r'```python\s*', '', code)
-        code = re.sub(r'```\s*', '', code)
+        code = re.sub(r"```python\s*", "", code)
+        code = re.sub(r"```\s*", "", code)
         return code.strip()
 
     async def fix_code(self, code: str, error: str) -> str:

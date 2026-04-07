@@ -16,11 +16,11 @@ from loguru import logger
 def main():
     # Путь к папке с HTML документацией
     docs_path = "D:/blender_docs/html"  # Укажите ваш путь
-    
+
     logger.info(f"📚 Indexing documentation from: {docs_path}")
-    
+
     kb = BlenderKnowledgeBase(docs_path=docs_path)
-    
+
     logger.info("✅ Indexing complete!")
 
 

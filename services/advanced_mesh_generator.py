@@ -1,5 +1,6 @@
-from typing import List, Dict
+from typing import Dict
 from .blender_api_helper import BlenderAPIHelper
+
 
 class AdvancedMeshGenerator:
     def __init__(self):
@@ -14,7 +15,7 @@ class AdvancedMeshGenerator:
         if component_type == "blade":
             length = params.get("length", 1.0)
             width = params.get("width", 0.1)
-            
+
             # Мы даем модели этот шаблон как "золотой стандарт"
             logic = f"""
 # Параметры: длина={length}, ширина={width}
@@ -32,5 +33,5 @@ bm.faces.new([verts[2], verts[3], verts[4]]) # Кончик
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 """
             return self.api_helper.wrap_in_boilerplate(logic)
-        
+
         return ""

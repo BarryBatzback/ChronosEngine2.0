@@ -2,8 +2,6 @@
 Сервис для ретопологии и оптимизации сетки
 """
 
-from typing import Dict, Any, Optional
-from loguru import logger
 
 
 class RetopologyService:
@@ -13,7 +11,7 @@ class RetopologyService:
         self,
         target_polycount: int = 10000,
         use_decimate: bool = True,
-        use_remesh: bool = False
+        use_remesh: bool = False,
     ) -> str:
         """
         Генерация кода для оптимизации сетки
@@ -26,7 +24,7 @@ class RetopologyService:
             "# ============================================================",
             "",
             "def optimize_mesh(obj, target_polycount):",
-            "    \"\"\"Оптимизация меша под целевое количество полигонов\"\"\"",
+            '    """Оптимизация меша под целевое количество полигонов"""',
             "    if obj.type != 'MESH':",
             "        return",
             "",
@@ -55,25 +53,29 @@ class RetopologyService:
         ]
 
         if use_decimate:
-            code_lines.extend([
-                "# Применяем оптимизацию ко всем выделенным объектам",
-                "for obj in bpy.context.selected_objects:",
-                "    optimize_mesh(obj, 10000)",
-            ])
+            code_lines.extend(
+                [
+                    "# Применяем оптимизацию ко всем выделенным объектам",
+                    "for obj in bpy.context.selected_objects:",
+                    "    optimize_mesh(obj, 10000)",
+                ]
+            )
 
         if use_remesh:
-            code_lines.extend([
-                "",
-                "# Альтернатива: Remesh модификатор для органических форм",
-                "def apply_remesh(obj, voxel_size=0.05):",
-                "    mod = obj.modifiers.new(name='Remesh', type='REMESH')",
-                "    mod.mode = 'VOXEL'",
-                "    mod.voxel_size = voxel_size",
-                "    bpy.context.view_layer.objects.active = obj",
-                "    bpy.ops.object.modifier_apply(modifier='Remesh')",
-            ])
+            code_lines.extend(
+                [
+                    "",
+                    "# Альтернатива: Remesh модификатор для органических форм",
+                    "def apply_remesh(obj, voxel_size=0.05):",
+                    "    mod = obj.modifiers.new(name='Remesh', type='REMESH')",
+                    "    mod.mode = 'VOXEL'",
+                    "    mod.voxel_size = voxel_size",
+                    "    bpy.context.view_layer.objects.active = obj",
+                    "    bpy.ops.object.modifier_apply(modifier='Remesh')",
+                ]
+            )
 
-        return '\n'.join(code_lines)
+        return "\n".join(code_lines)
 
     def generate_lod_code(self, levels: int = 3) -> str:
         """
@@ -87,7 +89,7 @@ class RetopologyService:
             "# ============================================================",
             "",
             "def generate_lods(obj, levels):",
-            "    \"\"\"Создание уровней детализации\"\"\"",
+            '    """Создание уровней детализации"""',
             "    if obj.type != 'MESH':",
             "        return",
             "",
@@ -118,4 +120,4 @@ class RetopologyService:
             f"    generate_lods(obj, {levels})",
         ]
 
-        return '\n'.join(code_lines)
+        return "\n".join(code_lines)

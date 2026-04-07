@@ -3,8 +3,8 @@
 FastAPI + Three.js
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
@@ -248,30 +248,33 @@ async def index():
 async def text_to_3d(request: TextTo3DRequest):
     """API эндпоинт для генерации 3D модели из текста"""
     import subprocess
-    import json
 
     model_id = str(uuid.uuid4())
     output_path = f"output/{model_id}.glb"
 
     # Вызываем оркестратор
-    result = subprocess.run([
-        "python", "main.py",
-        "--prompt", request.prompt,
-        "--output", output_path,
-        "--api-mode"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "python",
+            "main.py",
+            "--prompt",
+            request.prompt,
+            "--output",
+            output_path,
+            "--api-mode",
+        ],
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode == 0:
         return {
             "success": True,
             "model_url": f"/static/{model_id}.glb",
-            "model_id": model_id
+            "model_id": model_id,
         }
     else:
-        return {
-            "success": False,
-            "message": result.stderr
-        }
+        return {"success": False, "message": result.stderr}
 
 
 @app.post("/api/image-to-3d")
@@ -284,29 +287,35 @@ async def image_to_3d(file: UploadFile = File(...)):
 
     # Генерируем модель
     import subprocess
+
     model_id = str(uuid.uuid4())
     output_path = f"output/{model_id}.glb"
 
-    result = subprocess.run([
-        "python", "main.py",
-        "--image", image_path,
-        "--output", output_path,
-        "--api-mode"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "python",
+            "main.py",
+            "--image",
+            image_path,
+            "--output",
+            output_path,
+            "--api-mode",
+        ],
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode == 0:
         return {
             "success": True,
             "model_url": f"/static/{model_id}.glb",
-            "model_id": model_id
+            "model_id": model_id,
         }
     else:
-        return {
-            "success": False,
-            "message": result.stderr
-        }
+        return {"success": False, "message": result.stderr}
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

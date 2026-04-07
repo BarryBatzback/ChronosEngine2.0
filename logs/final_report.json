@@ -1,0 +1,30 @@
+[
+    {
+        "test_name": "Primitive Check",
+        "timestamp": "2026-04-07T00:55:15.829728",
+        "prompt": "Create a simple low-poly wooden crate.",
+        "steps": [],
+        "total_duration": 198.99,
+        "status": "FAILED",
+        "error_details": null
+    },
+    {
+        "test_name": "Geometry Logic",
+        "timestamp": "2026-04-07T00:58:36.820219",
+        "prompt": "Generate a sharp katana blade with a curved edge using bmesh operations.",
+        "steps": [],
+        "total_duration": 170.97,
+        "status": "FAILED",
+        "error_details": [
+            "Syntax Error at line 25: unterminated string literal (detected at line 25)"
+        ]
+    },
+    {
+        "test_name": "Stress Math",
+        "timestamp": "2026-04-07T01:01:29.806300",
+        "prompt": "Create a procedural spiral staircase with 15 steps, each rotated by 20 degrees.",
+        "steps": [],
+        "status": "CRASHED",
+        "error": "'ClientConnection' object has no attribute 'closed'"
+    }
+]
