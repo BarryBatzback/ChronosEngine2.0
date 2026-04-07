@@ -1,0 +1,12 @@
+[flake8]
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    _deprecated,
+    services/_deprecated,
+    tools/_deprecated
+max-line-length = 120
+ignore = W503,E203,W293,F841
+per-file-ignores =
+    services/blender_api_helper.py:E501

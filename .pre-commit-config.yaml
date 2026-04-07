@@ -3,7 +3,7 @@
     rev: 24.2.0
     hooks:
       - id: black
-        language_version: python3.11
+        language_version: python3
         exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
 
   - repo: https://github.com/pycqa/flake8
@@ -11,14 +11,4 @@
     hooks:
       - id: flake8
         exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
-        args:
-          - --max-line-length=120
-          - --ignore=W503,E203,W293,F841
-
-  # mypy временно отключен - раскомментируй когда настроишь типизацию
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.8.0
-  #   hooks:
-  #     - id: mypy
-  #       exclude: '^(_deprecated|services/_deprecated|tools/_deprecated|_deprecated/scripts)/'
-  #       additional_dependencies: [types-requests, types-setuptools]
+        additional_dependencies: [flake8-per-file-ignores]
